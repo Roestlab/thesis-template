@@ -1,15 +1,3 @@
-% Compile with biber/biblatex :
-%
-% $ convert -size 600x600 xc:gray dummy.png
-% $ wget http://ctan.mackichan.com/macros/latex/exptl/biblatex/doc/examples/biblatex-examples.bib
-% $ pdflatex phdthesis_template
-% $ makeindex phdthesis_template.nlo -s nomencl.ist -o phdthesis_template.nls
-% $ biber phdthesis_template
-% $ pdflatex phdthesis_template
-% $ pdflatex phdthesis_template
-% 
-%  Odd pages are always on the right
-
 \documentclass[pdftex, a4paper, oneside, 12pt, bibtotoc, idxtotoc ]{scrreprt} 
 
 \setlength{\parskip}{6pt} % Spacing between paragraphs
@@ -376,9 +364,9 @@ table of contents which is visually unpleasing }
 \begin{figure}[tb]
   \center
   \includegraphics[width=0.6\textwidth]{dummy.png}
-  \caption[Crystal structure of jack-bean urease]
-  {  \textbf{Crystal structure of jack-bean urease.} This figure shows the crystal
-     structure of jack-bean urease.  }
+  \caption[A figure depicting the current view in Zurich, Switzerland]
+  {  \textbf{A figure depicting the current view in Zurich, Switzerland.} The
+  weather could be better.  }
   \label{fig:fig1}
 \end{figure}
 
