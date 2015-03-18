@@ -1,0 +1,605 @@
+% Compile with biber/biblatex :
+%
+% $ convert -size 600x600 xc:gray dummy.png
+% $ wget http://ctan.mackichan.com/macros/latex/exptl/biblatex/doc/examples/biblatex-examples.bib
+% $ pdflatex phdthesis_template
+% $ makeindex phdthesis_template.nlo -s nomencl.ist -o phdthesis_template.nls
+% $ biber phdthesis_template
+% $ pdflatex phdthesis_template
+% $ pdflatex phdthesis_template
+% 
+%  Odd pages are always on the right
+
+\documentclass[pdftex, a4paper, oneside, 12pt, bibtotoc, idxtotoc ]{scrreprt} 
+
+\setlength{\parskip}{6pt} % Spacing between paragraphs
+\usepackage{setspace}
+% \singlespacing      %% 1-spacing (default)
+\onehalfspacing       %% 1,5-spacing
+
+\usepackage[pdflang=en, pdfauthor={John Doe}, colorlinks=true, linkcolor=black, 
+            citecolor=black, filecolor=black, pagecolor=black, urlcolor=black]{hyperref}
+
+% Just for demonstration purposes
+\usepackage{blindtext}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,german]{babel}
+
+% A few packages necessary for a full thesis but not used in the minimal
+% example here. It is recommended to turn these all on.
+% \usepackage{color}
+% \usepackage{float}
+% \usepackage{listings} % code listings
+% \usepackage{multirow} % multi row tables
+% \usepackage{subfigure} % figures with subfigures
+% \usepackage[]{sidecap} % make sidecap figures (SCfigures) with caption on the side
+% \usepackage{hyphenat} % hyphenation for long words or where latex has issues
+% \usepackage{siunitx} % SI units
+% \usepackage{amsmath} % math formula
+% \usepackage{pdfpages} % includepdf (for journal articles for example)
+% \usepackage{newclude} % proper includes of chapters (supports recursive includes)
+% \usepackage{url} 
+\usepackage[format=plain]{caption}
+\usepackage{afterpage} % afterpage for more control in positioning floats
+\setlength{\belowcaptionskip}{10pt} % adjust the space between the caption and the text
+\DeclareCaptionLabelFormat{adja-page}{\hrulefill\\#1 #2 \emph{(previous page)}}
+\usepackage{graphicx}
+\usepackage{multicol} % Multicolumn (used in the bibliography)
+
+% typesetting chemical formula
+\usepackage[version=3]{mhchem}
+
+% for nomenclature
+\usepackage[
+  %refpage,         % show reference to page where declaration occurs
+  %compatible       % compatible with old glossary commands
+  intoc,            % adds entry into toc, not needed if intocnumbered is set
+  %intocnumbered    % adds numbered entry into toc (not \chapter*{})
+]{nomencl}  
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%  Bibliographical commands
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+% We use biber for bibliography because there are more and better options
+\usepackage[refsection=chapter,style=numeric-comp,sorting=none,block=none,
+firstinits=true,doi=false,isbn=false, natbib=true,backend=biber,
+mincitenames=1,maxcitenames=2, % in text: all until 2, then only first
+maxbibnames=5,minbibnames=3,   % in bibliography: all until 5, then only first 3
+bibencoding=utf8]{biblatex}
+\addbibresource{biblatex-examples.bib} % sample file
+\hypersetup{colorlinks=true}
+\renewcommand*{\bibfont}{\scriptsize} % footnotesize tiny
+
+% manual hack to decrease the space between bib items
+\setlength\bibitemsep{0.5\itemsep}
+
+%% Use abbreviated journal name whenever possible
+\renewbibmacro*{journal}{%
+  \iffieldundef{shortjournal}
+    {%
+      \iffieldundef{journaltitle}
+        {}
+        {%
+          \printtext[journaltitle]
+            {%
+              \printfield[titlecase]{journaltitle}%
+              \setunit{\subtitlepunct}%
+              \printfield[titlecase]{journalsubtitle}%
+             }%
+         }%
+    }
+    {\printtext[journaltitle]{\printfield[titlecase]{shortjournal}}}%
+}
+
+%% Delete month and issn in every field (we dont want this to show up)
+\AtEveryBibitem{\clearfield{day} \clearfield{month} \clearfield{issn}}
+%% Delete url in all regular types (except software)
+\AtEveryBibitem{%
+  \ifentrytype{software}{%
+  }{%
+    \clearfield{url}%
+    \clearfield{urldate}%
+  }%
+}
+
+% Remove "in"
+\newbibmacro*{in:}{}
+% makes volume of journal bold and adds colon iff there is a issue number
+% following this
+\DeclareFieldFormat[article]{volume}{\textbf{#1}
+\iffieldundef{number}
+  {\space}
+  {\addcolon\space }
+}
+ 
+% Make et al. italic
+\renewbibmacro*{name:andothers}{% Based on name:andothers from biblatex.def
+  \ifboolexpr{
+    test {\ifnumequal{\value{listcount}}{\value{liststop}}}
+    and
+    test \ifmorenames
+  }
+    {\ifnumgreater{\value{liststop}}{1}
+       {\empty}% {\finalandcomma}%remove finalandcomma
+       {\empty}%
+     \andothersdelim\bibstring[\emph]{andothers}}
+    {}}
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%  Header
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhead{}
+% use leftmark (chapter) on both sides
+\fancyhead[L]{\ifthenelse{\isodd{\value{page}}}{}{\nouppercase \leftmark}}
+\fancyhead[R]{\ifthenelse{\isodd{\value{page}}}{\nouppercase \leftmark}{}}
+% \fancyhead[R]{\thepage} 
+% \renewcommand{\headrulewidth}{0pt} % default 0.4 pt
+\renewcommand{\headrulewidth}{0.25pt}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%  Table of Content and multi-part commands
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+%% Clear to a right page (odd page number)
+%% If we use oneside, we need to do this manually
+\newcommand*\cleartorightpage{%
+  \clearpage
+  \ifodd\value{page}
+  \else
+    \newpage\thispagestyle{empty} \mbox{}
+  \fi
+}
+
+% We rework a bit how parts work:
+%  for each part we add a nice centered title and a line to the TOC
+
+% No page number for part
+\renewcommand*\partpagestyle{empty}
+
+%% Add a nice line to the TOC
+\newcommand*\tocniceline{ \addtocontents{toc}{\protect\mbox{}\protect\hrulefill\par} }
+
+%% Add a centered title to the TOC
+\newcommand*\toccentertitle[1]{  
+\protect\hfill\protect% center from the left
+    \textbf{\large{\textsf{ #1 }}}% add text
+\protect\hfill\protect\mbox{}\protect\par}% center from the right
+
+%% New Part (subcommand): 
+\newcommand*\newpartSub[2]{
+  \clearpage{\pagestyle{empty} \cleardoublepage} % go to new page
+  \phantomsection % phantomsection for hyperref to work (see label)
+  \label{part.#1}
+  \part*{\center{Part \Roman{part}.} \\ \vspace{1em} #2 } % Create a new part on this page
+  \addtocontents{toc}{\protect\addvspace{3.25em}} % make some space in the TOC for the new title
+  \addtocontents{toc}{\toccentertitle{Part \hyperref[part.#1]{\Roman{part} #2}} } % create a centered TOC entry
+  \tocniceline % create a nice line in the TOC
+}
+
+%% New Part : add to counter, add part
+\newcommand*\newpart[1]{
+  \cleartorightpage
+  \addtocounter{part}{1} 
+  \newpartSub{\arabic{part}}{#1}
+}
+
+%  Extra commands
+
+% Change right side of TOC
+% add plus1fil to tocrmarg if desired to have have ragged right
+% see documentation of tocloft
+%  -> there were some issues with titles that were too long
+%  -> try removing it and see what happens :-)
+\makeatletter
+\renewcommand{\@pnumwidth}{2.55em}% default is 1.55em
+\renewcommand{\@tocrmarg}{3.55em}% default is 2.55em
+\makeatother
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%  Inspirational quote at the beginning of chapter
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%
+% http://tex.stackexchange.com/questions/53377/inspirational-quote-at-start-of-chapter
+\makeatletter
+\newenvironment{chapquoteright}[2][2em]
+  {\setlength{\@tempdima}{#1}%
+   \def\chapquoteright@author{#2}%
+   % The size of the paragraph is "textwidth - tmpdima" (use -2\@tempdima for
+   % symmetrical placement)
+   \parshape 1 \@tempdima \dimexpr\textwidth-\@tempdima\relax% 
+   \itshape}
+  {\par\normalfont\hfill--\ \chapquoteright@author\par\bigskip}
+\makeatother
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%  Extra hacks
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+% Do not add a linebreak between et al. and the citation ([x])
+% see http://tex.stackexchange.com/questions/74931/biblatexs-textcite-inserts-a-breaking-space-between-author-names-and-citation-n
+% install http://tex.stackexchange.com/questions/183067/problems-installing-xpatch
+\usepackage{xpatch}
+\xpatchbibmacro{textcite}{\addspace}{\addnbspace}{}{}
+\xpatchbibmacro{cite}{\addspace}{\addnbspace}{}{}
+
+
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%  Document Start
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\begin{document}
+\selectlanguage{english}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%  Title page (suitable for ETH Zurich)
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\begin{titlepage}
+    \begin{center}
+        DISS. ETH NO. xxx
+
+        \vspace*{1.0cm}
+        
+        \Large
+        \textbf{A novel method to parametrize the silliness of walks}
+
+        \vspace*{1.0cm}
+        
+        \normalsize
+        A thesis submitted to attain the degree of
+
+        \vspace*{1.0cm}
+
+        \Large
+        DOCTOR OF SCIENCES of ETH ZURICH \\
+        (Dr.\ sc.\ ETH Zurich)
+
+        \vspace*{1.0cm}
+
+        \normalsize
+        presented by
+
+        \vspace*{0.5cm}
+
+        \Large
+        John Doe
+
+        \vspace*{0.5cm}
+        
+        \normalsize
+        MSc, ETH Zurich \\
+        born on March 14, 1879 \\
+        citizen of Ulm, Germany
+
+        \vspace{1.0cm}
+
+        accepted on the recommendation of
+
+        \vspace{0.5cm}
+
+        Prof. Dr. Richard Smith \\
+        Dr. John Doe \\
+        Prof. Dr. Jane Doe 
+
+        \vspace{0.5cm}
+
+        20xx
+        
+    \end{center}
+\end{titlepage}
+
+% Empty page
+\newpage
+\thispagestyle{empty}
+\phantom{a} 
+
+\newpage
+% Dedication page
+\thispagestyle{empty}
+\phantom{a}
+\vspace{5cm}
+\begin{center}
+  \Large
+  \textit{Dedication}
+\end{center}
+
+% TOC
+\pagenumbering{roman} 
+\tableofcontents
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%  Abstract
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%% 
+%% The idea would be to write this into a new .tex file, for example
+%% abstract.tex and then include it like this:
+%% \include*{abstract}
+\chapter*{Summary}
+\addcontentsline{toc}{chapter}{Summary}
+\blindtext[2]
+
+\chapter*{Zusammenfassung}
+\addcontentsline{toc}{chapter}{Zusammenfassung}
+\selectlanguage{german} % allows correct hyphenation etc.
+\blindtext[2]
+\selectlanguage{english}
+
+% Abbrevations
+\renewcommand{\nomname}{Abbreviations}
+\makenomenclature
+\printnomenclature[4.0cm]
+ 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%  Introduction
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\newpart{Introduction and Background}
+\label{part:intro}
+
+\cleartorightpage
+\chapter{Introduction}
+\label{sec:introduction}
+\pagenumbering{arabic} 
+
+%% The idea would be to write this into a new .tex file, for example
+%% introduction.tex and then include it like this:
+% \include*{introduction}
+\begin{chapquoteright}[12em]{Inspirational Author, \textit{Inspirational Book}}
+\small \itshape%
+\blindtext[1]
+\end{chapquoteright}
+
+\blindtext[3]
+
+\section{Intro Section 1}
+\blindtext[1]
+\subsection{This is some very detailed title that may even span multiple lines
+in the table of contents}
+\blindtext[2]
+\subsection{Another detailed title that may even span more
+using data-independent long words that would go too far to the right in the
+table of contents which is visually unpleasing }
+\blindtext[2]
+
+% Create the dummy png as follows:
+% convert -size 600x600 xc:gray dummy.png
+\begin{figure}[tb]
+  \center
+  \includegraphics[width=0.6\textwidth]{dummy.png}
+  \caption[Crystal structure of jack-bean urease]
+  {  \textbf{Crystal structure of jack-bean urease.} This figure shows the crystal
+     structure of jack-bean urease.  }
+  \label{fig:fig1}
+\end{figure}
+
+\section{Intro Section 2}
+\blindtext[1]
+
+\subsection{Intro Detailed Section 1}
+\blindtext[2]
+
+% A very large figure that spans a full page
+\begin{figure}[p]
+  \captionsetup{labelformat=empty,list=no}
+  \includegraphics[width=1.0\textwidth,height=1.0\textheight]{dummy.png}
+  \caption{}
+\end{figure}
+\begin{figure}
+  \captionsetup{labelformat=adja-page}
+  \ContinuedFloat
+  \caption[Sometimes there is too much to say]
+  {\textbf{Sometimes there is too much to say.}
+  And a single page is simply not enough.
+  \blindtext[2]
+  }
+  \label{fig:a_large_figure}
+\end{figure}
+
+\subsection{Intro Detailed Section 2}
+\blindtext[2]
+
+Here we also need to reference some important people, for example \textcite{aksin} who produced
+important work \cite{herrmann}.
+However no discussion would be complete without mentioning \textcite{bertram}.
+
+% Some nomenclature
+\nomenclature{Q}{Quadrupole}%
+\nomenclature{QIT}{Quadrupole ion trap}%
+\nomenclature{LIT}{Linear ion trap}%
+\nomenclature{LTQ}{Linear trap quadrupole}%
+
+% References
+\begin{multicols}{2}
+\singlespacing        %% 1-spacing (default)
+\printbibliography[segment=\therefsegment,heading=subbibliography]
+\onehalfspacing       %% 1,5-spacing
+\end{multicols}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%  Main part
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\newpart{Scientific Contributions}
+\label{part:contributions}
+
+\cleartorightpage
+\chapter[Main Chapter 1]{
+Main Chapter 1%
+\textsuperscript{\footnotesize{\textsf{1}}}
+\footnotetext[1]{Originally published in
+Doe J, Smith J
+``A Space Odysee.''
+\textit{A very nice journal}. \textbf{14}:1 (201), pp. 74–77.
+}%
+}
+\label{sec:chap1}
+
+% \include*{srm_clashes_thesis_format}
+
+% Abstract
+\blindtext[1]
+
+\section{Introduction}
+\blindtext[2]
+\section{Methods}
+\blindtext[2]
+\section{Results}
+\blindtext[2]
+\section{Discussion}
+\blindtext[2]
+
+\cleartorightpage
+\chapter[Main Chapter 2]{
+Main Chapter 2%
+\textsuperscript{\footnotesize{\textsf{1}}}
+\footnotetext[1]{Originally published in
+Doe J, Smith J
+``A Space Odysee.''
+\textit{A very nice journal}. \textbf{14}:1 (201), pp. 74–77.
+}%
+}
+\label{sec:chap2}
+
+% Paper Abstract
+\blindtext[1]
+
+\section{Introduction}
+\blindtext[2]
+\section{Methods}
+\blindtext[2]
+\section{Results}
+\begin{table}[h!b] 
+  \caption[Result in table]{ Result in table }
+  \label{tab:result}
+  \centering
+  \begin{tabular}{ | c |  c | p{0.49\linewidth} |}
+    \hline
+    Result 1 & Result 2 & Improved Result \\
+    \hline
+    \hline
+    5.3 & 7.8 & 8.9 \\
+    5.2 & 7.1 & 8.2 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\blindtext[2]
+\section{Discussion}
+\blindtext[2]
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%  Conclusion and Outlook
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\newpart{Concluding Remarks}
+
+\cleartorightpage
+\chapter{Discussion and Outlook}
+\label{sec:discussion}
+
+\blindtext[5]
+
+Here we conclude by mentioning some important people, for example \textcite{aksin} who produced
+important work.
+However no discussion would be complete without mentioning \textcite{bertram}.
+
+% References
+\begin{multicols}{2}
+\singlespacing        %% 1-spacing (default)
+\printbibliography[segment=\therefsegment,heading=subbibliography]
+\onehalfspacing       %% 1,5-spacing
+\end{multicols}
+
+\cleartorightpage
+\chapter{Copyright and Contribution}
+
+The following describes my original contributions to each project
+
+\textbf{Chapter \ref{sec:introduction}}: All content is contributed exclusively
+by me.
+
+\textbf{Chapter \ref{sec:chap1}}: I performed the data
+acquisition and analysis, wrote the code and produced the figures. I wrote the manuscript with
+input from all authors.  S Smith and D Smith designed and supervised the study.
+%
+This chapter is reprinted with kind permission for non-commercial use
+granted by the \textit{Society for the Advancement of Silly Walks}.
+It is originally published as 
+
+Doe J, Smith J
+``A Space Odysee.''
+\textit{A very nice journal}. \textbf{14}:1 (201), pp. 74–77.
+
+\textbf{Chapter \ref{sec:chap2}}: This work was performed in close
+collaboration with Jane Doe who contributed equally to the work. We
+both designed, implemented and executed the code and performed the analysis.
+We both wrote the manuscript with input from all authors.
+
+\textbf{Chapter \ref{sec:discussion}}: All content
+is contributed exclusively by me.
+
+Figure~\ref{fig:fig1} uses an image originally created by Jane Doe
+reproduced under the Creative Commons Attribution 3.0 Unported and by John Smith
+reproduced under the Creative Commons Attribution-Share Alike 4.0
+International licence (the resulting Figure~\ref{fig:fig1} is
+available under the same licence).
+
+Multiple scientific papers in the appendix are reproduced in full, see the
+individual sections for specific copyright terms.
+
+\cleartorightpage
+\chapter{Acknowledgements}
+\blindtext[2]
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%  Appendix
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\cleartorightpage
+\chapter{Appendix}
+
+The appendix contains additional information and contributions to scientific
+publications.
+
+\clearpage
+
+\section{Additional Paper 1}
+\label{sec:paper1}
+\paragraph{Authors:}  Doe J, Smith J 
+\paragraph{Copyright:} Permission to reproduce this article for non-commercial
+use has been granted by \textit{Society for the Advancement of Silly Walks}
+to me as one of the authors of the article.
+\paragraph{Contribution:} Data analysis, simulation. 
+% \includepdf[pages=-]{paper1.pdf}
+
+\section{Additional Paper 2}
+\label{sec:collins_1433}
+\paragraph{Authors:}  Doe J, Smith J 
+\paragraph{Copyright:} Permission to reproduce this article for non-commercial
+use has been granted by \textit{Society for the Advancement of Silly Walks}
+to me as one of the authors of the article.
+\paragraph{Contribution:} Development of data analysis strategy.
+% \includepdf[pages=-]{paper2.pdf}
+
+\clearpage
+\addcontentsline{toc}{section}{List of Figures}
+\listoffigures
+\clearpage
+\addcontentsline{toc}{section}{List of Tables}
+\listoftables
+
+\cleartorightpage
+\chapter{Curriculum vitae}
+\label{sec:cv}
+% \includepdf[pages=-,pagecommand=\thispagestyle{plain}]{cv.pdf}
+
+\end{document}
+
+
